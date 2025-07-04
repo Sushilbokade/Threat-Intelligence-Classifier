@@ -1,0 +1,9 @@
+langchain
+langchain_community
+fastapi
+elasticsearch
+python-dotenv
+uvicorn
+google-cloud-aiplatform
+azure-ai-textanalytics
+pydantic
