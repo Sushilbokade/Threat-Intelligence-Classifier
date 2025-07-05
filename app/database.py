@@ -1,42 +1,55 @@
-from elasticsearch import AsyncElasticsearch
+from elasticsearch import AsyncElasticsearch, NotFoundError
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 load_dotenv()
 
-# Construct proper Elasticsearch URL
-es_host = os.getenv('ELASTICSEARCH_HOST', 'localhost')
-es_port = os.getenv('ELASTICSEARCH_PORT', '9200')
-es_user = os.getenv('ELASTICSEARCH_USERNAME')
-es_pass = os.getenv('ELASTICSEARCH_PASSWORD')
+def get_elasticsearch_config():
+    """Get Elasticsearch configuration from environment variables"""
+    host = os.getenv("ELASTICSEARCH_HOST", "http://localhost:9200")
+    parsed = urlparse(host)
+    
+    # Ensure the URL has all required components
+    if not parsed.scheme or not parsed.hostname:
+        # Default to http://localhost:9200 if not properly configured
+        return "http://localhost:9200"
+    
+    # Add port if not specified
+    if not parsed.port:
+        host = f"{parsed.scheme}://{parsed.hostname}:9200"
+    
+    return host
 
-# Create Elasticsearch client with proper URL formatting
+# Initialize Elasticsearch client with basic_auth instead of http_auth
 es = AsyncElasticsearch(
-    [f"http://{es_host}:{es_port}"],
-    http_auth=(es_user, es_pass) if es_user and es_pass else None
+    hosts=[get_elasticsearch_config()],
+    basic_auth=(
+        os.getenv("ELASTICSEARCH_USER", "elastic"),
+        os.getenv("ELASTICSEARCH_PASSWORD", "changeme")
+    )
 )
 
 async def init_indices():
     """Initialize required Elasticsearch indices"""
     try:
-        if not await es.indices.exists(index="threat_classifications"):
-            mapping = {
-                "mappings": {
-                    "properties": {
-                        "text": {"type": "text"},
-                        "threat_level": {"type": "keyword"},
-                        "explanation": {"type": "text"},
-                        "confidence": {"type": "float"},
-                        "timestamp": {"type": "date"}
-                    }
+        # Create the threat classifications index if it doesn't exist
+        await es.indices.create(
+            index="threat_classifications",
+            mappings={
+                "properties": {
+                    "text": {"type": "text"},
+                    "threat_level": {"type": "keyword"},
+                    "explanation": {"type": "text"},
+                    "confidence": {"type": "float"},
+                    "timestamp": {"type": "date"}
                 }
-            }
-            await es.indices.create(index="threat_classifications", body=mapping)
-            return True
+            },
+            ignore=400  # Ignore 400 error (index already exists)
+        )
     except Exception as e:
         print(f"Error initializing indices: {str(e)}")
-        return False
 
 async def store_classification(text: str, classification: dict):
     """Store a threat classification result"""
@@ -57,13 +70,12 @@ async def get_recent_classifications(limit: int = 100):
     try:
         result = await es.search(
             index="threat_classifications",
-            body={
-                "query": {"match_all": {}},
-                "sort": [{"timestamp": "desc"}],
-                "size": limit
-            }
+            sort=[{"timestamp": "desc"}],
+            size=limit
         )
         return [hit["_source"] for hit in result["hits"]["hits"]]
+    except NotFoundError:
+        return []
     except Exception as e:
         print(f"Error retrieving classifications: {str(e)}")
         return []

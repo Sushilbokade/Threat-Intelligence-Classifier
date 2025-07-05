@@ -1,6 +1,3 @@
-# Environment variables
-.env
-
 # Python
 __pycache__/
 *.py[cod]
@@ -24,26 +21,27 @@ wheels/
 *.egg
 
 # Virtual Environment
-.venv/
+.env
+.venv
+env/
 venv/
 ENV/
 
-# VS Code
+# IDE
+.idea/
 .vscode/
+*.swp
+*.swo
 
-# Elasticsearch
-es_data/
+# Logs
+*.log
+
+# Local Elasticsearch data
+data/
 
 # Docker
 .docker/
 
-# Test coverage
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
+# Operating System
+.DS_Store
+Thumbs.db

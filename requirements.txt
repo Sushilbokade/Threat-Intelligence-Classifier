@@ -1,9 +1,16 @@
 langchain
-langchain_community
+langchain-openai
 fastapi
 elasticsearch
 python-dotenv
 uvicorn
-google-cloud-aiplatform
-azure-ai-textanalytics
 pydantic
+requests
+python-jose
+python-multipart
+aiohttp
+pywin32; platform_system == "Windows"
+pytest
+pytest-asyncio
+nest-asyncio
+httpx
