@@ -238,3 +238,60 @@ MIT License - See LICENSE file for details
 - Elastic for Elasticsearch
 - FastAPI team
 - LangChain community
+
+## Branch Structure
+
+This project follows a structured branching strategy:
+
+- `main` - Production-ready code
+  - Contains stable, tested, and deployment-ready code
+  - All code here has been thoroughly tested and reviewed
+  - Direct commits are not allowed; changes come through merges
+
+- `develop` - Main development branch
+  - Contains latest delivered development changes for the next release
+  - Where features are integrated and tested together
+  - Source for nightly builds
+
+- Feature Branches (`feature/*`)
+  - Created for each new feature or enhancement
+  - Branch from: `develop`
+  - Merge back into: `develop`
+  - Naming convention: `feature/feature-name`
+  - Example: `feature/api-rate-limiting`
+
+- Hotfix Branches (`hotfix/*`)
+  - Created for urgent fixes to production code
+  - Branch from: `main`
+  - Merge back into: `main` and `develop`
+  - Naming convention: `hotfix/issue-description`
+  - Example: `hotfix/security-patch`
+
+### Branch Workflow
+
+1. Feature Development:
+   ```
+   git checkout develop
+   git checkout -b feature/new-feature
+   # Make changes
+   git push -u origin feature/new-feature
+   # Create PR to merge into develop
+   ```
+
+2. Hotfix Process:
+   ```
+   git checkout main
+   git checkout -b hotfix/fix-description
+   # Make urgent fixes
+   git push -u origin hotfix/fix-description
+   # Create PRs to merge into both main and develop
+   ```
+
+3. Release Process:
+   ```
+   git checkout develop
+   # Ensure all tests pass
+   git checkout main
+   git merge develop
+   git push origin main
+   ```
